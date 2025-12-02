@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MarketMaster RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                750: '#2d3748', // Custom shade for depth
+              }
+            },
+            animation: {
+              'spin-slow': 'spin 3s linear infinite',
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap'); /* For Certificate */
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        overflow: hidden; /* Prevent body scroll, let React app handle it */
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      
+      /* Celebration Animations */
+      @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+      .animate-pop {
+        animation: pop 0.4s ease-out;
+      }
+      
+      @keyframes flash {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+      }
+      .animate-flash {
+        animation: flash 0.5s ease-out;
+      }
+
+      /* Particle Animations */
+      @keyframes particle-out {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) scale(0); opacity: 0; }
+      }
+      
+      .animate-particle-1 { --tw-translate-x: -50px; --tw-translate-y: -50px; animation: particle-out 1s ease-out forwards; }
+      .animate-particle-2 { --tw-translate-x: 50px; --tw-translate-y: -50px; animation: particle-out 1s ease-out 0.1s forwards; }
+      .animate-particle-3 { --tw-translate-x: -50px; --tw-translate-y: 50px; animation: particle-out 1s ease-out 0.2s forwards; }
+      .animate-particle-4 { --tw-translate-x: 50px; --tw-translate-y: 50px; animation: particle-out 1s ease-out 0.3s forwards; }
+
+      /* 3D Card Flip */
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "jspdf": "https://esm.sh/jspdf@2.5.1"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white antialiased transition-colors duration-300">
+    <div id="root"></div>
+  </body>
+</html>
