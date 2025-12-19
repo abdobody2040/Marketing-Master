@@ -1,144 +1,87 @@
 # MarketMaster RPG - The Gamified Marketing Academy
 
-Welcome to **MarketMaster RPG**, the ultimate gamified learning platform for aspiring Chief Marketing Officers (CMOs). This application combines role-playing game (RPG) elements with advanced AI to create an immersive educational experience covering everything from foundational strategy to advanced pharmaceutical marketing.
+Welcome to **MarketMaster RPG**, a world-class, AI-driven learning platform designed to transform marketing novices into legendary Chief Marketing Officers. This application blends immersive RPG mechanics with the power of the Google Gemini API to deliver a deep, interactive, and personalized curriculum.
 
 ---
 
-## 🚀 Quick Start & Installation
+## 🌟 Key Capabilities
 
-This project is built with **React**, **TypeScript**, and **Tailwind CSS**. It uses the **Google Gemini API** for dynamic content generation.
+### 🛡️ Adaptive Difficulty Scaling
+The app tailors its complexity and grading stringency based on your chosen rank:
+*   **Intern (Easy):** Lenient grading, encouraging feedback, and simplified concepts.
+*   **Manager (Normal):** Standard professional expectations and balanced concepts.
+*   **CMO (Hard):** Strict executive-level grading, advanced terminology, and high-stakes strategic scenarios.
 
-### Prerequisites
-*   Node.js (v14 or higher)
-*   npm or yarn
-*   A Google Gemini API Key
+### 🎭 Interactive Scenario Mode (with Retry)
+Experience real-world marketing crises. The AI generates unique scenarios where you must execute a strategy. 
+*   **Dynamic Evaluation:** Get graded on ROI, brand impact, and strategic depth.
+*   **Infinite Practice:** Didn't like your score? Use the **"Try Another Scenario"** feature to generate a fresh challenge in the same domain.
 
-### Installation Steps
+### 🏛️ The Marketing Simulator (CMO Mode)
+The ultimate capstone experience. Step into the shoes of a leader:
+*   **Business Case Generation:** Realistic, complex challenges (e.g., a "Molecule-to-Market" launch in a regulated environment).
+*   **Full Plan Creation:** Draft strategies for Audience, Channels, and Budgeting.
+*   **Board Review:** Get a letter grade (S to F) from an AI Board of Directors.
 
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/yourusername/marketmaster-rpg.git
-    cd marketmaster-rpg
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
-
-3.  **Configure Environment Variables**
-    Create a `.env` file in the root directory and add your Gemini API Key.
-    ```env
-    API_KEY=your_google_gemini_api_key_here
-    ```
-    *Note: The application expects `process.env.API_KEY` to be available.*
-
-4.  **Run the Application**
-    ```bash
-    npm start
-    # or
-    yarn start
-    ```
-    Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 📚 Knowledge Library & AI Flashcards
+*   **Book Summaries:** Detailed, AI-curated breakdowns of 100+ marketing classics.
+*   **Interactive Flashcards:** Uses **Active Recall** by generating definitions for topics you've recently studied in your lessons.
+*   **Professional Templates:** Downloadable PDF, Excel, and Doc templates for your actual marketing work.
 
 ---
 
-## 🌟 Core Features
+## 🗺️ The Curriculum (Quest Map)
 
-### 1. The Quest Map
-A visual progression system divided into 4 Phases:
-*   **Phase 1: Foundations** (Strategy, Branding, Psychology, Pharma Basics)
-*   **Phase 2: Tactics** (SEO, Content, Social Media, Email)
-*   **Phase 3: Growth** (PPC, Analytics, CRO, Integrated Marketing)
-*   **Phase 4: Leadership** (Product, B2B, PR, Ops, Pharma Strategy)
+The journey is divided into four distinct phases of mastery:
 
-Users must master modules to unlock subsequent phases.
+### Phase 1: Foundations
+*   **Strategy Citadel:** 4Ps, SWOT, STP, Blue Ocean Strategy.
+*   **Pharma Foundations:** Value Chains, Regulatory Landscapes, Patient-Centricity.
+*   **Brand Forge:** Archetypes, Voice & Tone, Visual Identity.
+*   **Mind Palace:** Behavioral Psychology, Cialdini’s Principles, Neuromarketing.
 
-### 2. AI-Powered Lessons & Quizzes
-*   **Dynamic Content:** Lessons are generated on-the-fly by AI based on the selected topic and difficulty level.
-*   **Interactive Quizzes:** After every lesson, users take a 3-question quiz. Passing with >60% marks the topic as complete.
-*   **XP System:** Users earn Experience Points (XP) to level up and earn badges.
+### Phase 2: Tactical Ops
+*   **Bio-Intelligence:** Patient Journey Mapping, PESTEL, Porter's 5 Forces.
+*   **Content Kingdom:** Storytelling, Copywriting Formulas, Video Marketing.
+*   **Content Marketing Mastery:** Strategy, Blog Writing, Scripting.
+*   **Social Media Arena:** Platform Mechanics, Community Management, Influencers.
+*   **SEO Sorcery:** Keyword Research, On-Page & Technical SEO Sorcery.
+*   **Email Alchemy:** Drip Campaigns, Segmentation, GDPR.
 
-### 3. The Marketing Simulator (CMO Mode)
-A realistic roleplay environment where users act as a CMO.
-*   **Business Case Generation:** The AI generates unique companies with specific problems (e.g., "Declining sales in a saturated beverage market").
-*   **Strategic Planning:** Users draft an Executive Summary, define Target Audiences (Demographics/Psychographics), select Channels, and allocate a Budget.
-*   **AI Grading:** The "Board of Directors" (AI) evaluates the plan, providing a letter grade (S, A, B, C, D, F), a score out of 100, and tactical feedback.
+### Phase 3: Growth Engine
+*   **Market Access & Pricing:** Reimbursement, Tiered Pricing, Lifecycle Management.
+*   **Integrated Marketing Nexus:** Unifying Online & Offline (TV, OOH, Digital).
+*   **PPC Treasury:** Google Ads, ROAS optimization, Programmatic.
+*   **Analytics Archmage:** GA4, Attribution Models, LTV calculation.
+*   **Growth Lab:** A/B Testing, CRO, the AARRR Pirate Funnel.
 
-### 4. Knowledge Library
-A central hub for resources:
-*   **Book Summaries:** 100+ detailed summaries of top marketing books (Blue Ocean Strategy, Contagious, etc.).
-*   **Templates:** Downloadable tools (PDF, Excel, Doc) for Marketing Plans, Content Calendars, SEO Audits, and more.
-*   **Flashcards:** An active recall game that generates flashcards based on the specific topics the user has learned.
-
-### 5. Pharma Specialization Track
-A dedicated curriculum for Pharmaceutical Marketing, covering:
-*   Regulatory Landscapes (Medoria context)
-*   Patient Journeys & Flow
-*   Market Access & Pricing Models
-*   HCP Segmentation
-
-### 6. Administration Panel
-A hidden dashboard for managing the app:
-*   **User Management:** Create, delete, and view users.
-*   **Content Management:** Add/Edit/Delete Modules, Books, and Templates.
-*   **Configuration:** Set the app subscription price.
+### Phase 4: Market Leadership
+*   **Pharma Brand Strategy:** HCP Segmentation, AI in Pharma, Omnichannel.
+*   **Marketing Operations:** MarTech Stack Management, Agile Marketing.
+*   **Product Launchpad:** Go-To-Market (GTM) Strategy, Product-Market Fit.
+*   **B2B Bastion:** Account-Based Marketing (ABM), Lead Gen vs Demand Gen.
+*   **Reputation Realm:** Crisis Communication, Press Relations, Public Perception.
 
 ---
 
-## 📂 Project Structure
+## 🛠️ Technical Stack
 
-```
-/
-├── public/                 # Static assets
-├── src/
-│   ├── components/         # React Components
-│   │   ├── AdminPanel.tsx      # Admin Dashboard
-│   │   ├── AuthScreen.tsx      # Landing Page & Login
-│   │   ├── Library.tsx         # Books, Templates, Flashcards
-│   │   ├── ModuleCard.tsx      # Dashboard Card UI
-│   │   ├── QuestMap.tsx        # Progression Map
-│   │   ├── Quiz.tsx            # Quiz Interface
-│   │   ├── Scenario.tsx        # Text-based RPG Scenarios
-│   │   ├── Sidebar.tsx         # Navigation
-│   │   ├── Simulator.tsx       # CMO Simulator Logic
-│   │   └── ...                 # Charts & UI helpers
-│   ├── services/
-│   │   ├── certificateService.ts # PDF Generation
-│   │   ├── geminiService.ts      # AI Integration (Lessons, Grading)
-│   │   └── storageService.ts     # LocalStorage Mock Backend
-│   ├── App.tsx             # Main Router & State
-│   ├── constants.ts        # Static Data (Modules, Book Lists)
-│   ├── index.tsx           # Entry Point
-│   └── types.ts            # TypeScript Interfaces
-├── index.html              # HTML Root & Tailwind Config
-└── metadata.json           # App Metadata
-```
+*   **Frontend:** React 19 (Hooks, Context, Suspense for Lazy Loading).
+*   **Styling:** Tailwind CSS (Custom Dark Mode, 3D CSS transforms).
+*   **AI Engine:** Google Gemini API (`gemini-2.5-flash` for high-speed reasoning).
+*   **Persistence:** LocalStorage-based `storageService` for progress and user accounts.
+*   **PDF Engine:** `jspdf` for generating high-fidelity Graduation Certificates.
 
 ---
 
-## 🛠️ Technical Details
+## 🚀 Getting Started
 
-### AI Integration
-The app uses the `@google/genai` SDK.
-*   **Prompt Engineering:** The app uses sophisticated prompts injected with "Context" (e.g., "Act as a strict CMO") to ensure high-quality output.
-*   **JSON Mode:** The AI is instructed to return structured JSON for Quizzes and Evaluations to ensure the app can parse and render the data reliably.
-
-### Persistence
-The app currently uses `localStorage` to simulate a database (`storageService.ts`). This allows for a persistent experience (User accounts, progress, settings) without a dedicated backend server for the demo.
-
-### Theming
-Tailwind CSS is used for styling, with full support for **Dark Mode**. The theme preference is stored in the user profile.
+1.  **Login:** Use the default `admin / password` or create a new character.
+2.  **Tutorial:** Complete the onboarding to understand the XP and Leveling system.
+3.  **Start a Quest:** Head to the **Quest Map**, select **Phase 1: Foundations**, and begin your first lesson.
+4.  **Level Up:** Earn XP through Quizzes and Scenarios to unlock the advanced **Simulator**.
 
 ---
 
-## 🏆 Certification
-Upon mastering all modules, users can generate a **Professional Certificate of Mastery**. This is rendered as a high-resolution PDF using `jspdf`, complete with the user's name, date, and a gold seal.
-
----
-
-## 📝 License
-This project is for educational purposes. 
-Copyright © 2023 MarketMaster RPG.
+**Master the market. Own the narrative. Rule the RPG.**
+Copyright © 2025 MarketMaster RPG Academy.
