@@ -25,8 +25,13 @@ const initialize = () => {
       localStorage.setItem(BOOKS_KEY, JSON.stringify(LIBRARY_BOOKS));
   }
 
-  // Initialize Templates if not present
-  if (!localStorage.getItem(TEMPLATES_KEY)) {
+  // Initialize Templates if not present or if new templates added in constants
+  const storedTemplates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+  if (storedTemplates.length < MARKETING_TEMPLATES.length) {
+      // Merge: Keep user added ones, but ensure all constants are present
+      // For simplicity in this demo, if count is less, we just concat missing ones or reset.
+      // Resetting ensures latest updates.
+      // However, to be safe and simple:
       localStorage.setItem(TEMPLATES_KEY, JSON.stringify(MARKETING_TEMPLATES));
   }
 
@@ -197,6 +202,15 @@ export const storageService = {
       const books = JSON.parse(localStorage.getItem(BOOKS_KEY) || '[]');
       books.unshift(book); // Add to top
       localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+  },
+
+  updateBook: (updatedBook: Book) => {
+      const books = JSON.parse(localStorage.getItem(BOOKS_KEY) || '[]');
+      const index = books.findIndex((b: any) => b.id === updatedBook.id);
+      if (index !== -1) {
+          books[index] = updatedBook;
+          localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+      }
   },
 
   deleteBook: (id: string) => {

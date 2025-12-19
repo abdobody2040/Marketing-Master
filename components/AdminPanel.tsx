@@ -17,11 +17,16 @@ export const AdminPanel: React.FC = () => {
 
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [editingModule, setEditingModule] = useState<MarketingModule | null>(null);
-  const [newModule, setNewModule] = useState<Partial<MarketingModule>>({ phase: 1, color: 'bg-indigo-600', icon: 'fa-solid fa-star', topics: [], aiContext: '' });
+  
+  // Module Form State - Separated 'topics' string state to avoid type conflicts
+  const [newModule, setNewModule] = useState<Partial<MarketingModule>>({ phase: 1, color: 'bg-indigo-600', icon: 'fa-solid fa-star', aiContext: '' });
+  const [newModuleTopics, setNewModuleTopics] = useState('');
 
   // Library States
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [newBook, setNewBook] = useState<Partial<Book>>({ keyTakeaways: [] });
+  const [newBookTakeaways, setNewBookTakeaways] = useState(''); // Separate state for takeaways input
+
   const [isAddingTemplate, setIsAddingTemplate] = useState(false);
   const [newTemplate, setNewTemplate] = useState<Partial<Template>>({ format: 'pdf', content: '' });
 
@@ -52,19 +57,24 @@ export const AdminPanel: React.FC = () => {
 
   const handleCreateModule = (e: React.FormEvent) => {
       e.preventDefault();
-      if(!newModule.title || !newModule.id) return;
+      if(!newModule.title) return;
+      
+      const id = newModule.id || newModule.title.toLowerCase().replace(/\s/g, '-');
       const moduleToAdd: MarketingModule = {
-          id: newModule.id,
+          id: id,
           title: newModule.title,
           description: newModule.description || '',
           phase: newModule.phase || 1,
           color: newModule.color || 'bg-slate-500',
           icon: newModule.icon || 'fa-solid fa-circle',
-          topics: (newModule.topics as unknown as string).split(',').map(t => t.trim()).filter(t => t.length > 0),
+          topics: newModuleTopics.split(',').map(t => t.trim()).filter(t => t.length > 0),
           aiContext: newModule.aiContext
       };
       storageService.addModule(moduleToAdd);
-      loadData(); setIsCreatingModule(false); setNewModule({ phase: 1, color: 'bg-indigo-600', icon: 'fa-solid fa-star', topics: [], aiContext: '' });
+      loadData(); 
+      setIsCreatingModule(false); 
+      setNewModule({ phase: 1, color: 'bg-indigo-600', icon: 'fa-solid fa-star', aiContext: '' });
+      setNewModuleTopics('');
   }
 
   const handleModuleSave = (e: React.FormEvent) => {
@@ -97,10 +107,12 @@ export const AdminPanel: React.FC = () => {
           category: newBook.category || 'General',
           thumbnail: newBook.thumbnail || `https://placehold.co/300x450/1e293b/FFF?text=${encodeURIComponent(newBook.title)}`,
           summary: newBook.summary || 'Summary coming soon.',
-          keyTakeaways: typeof newBook.keyTakeaways === 'string' ? (newBook.keyTakeaways as string).split(',').map((k: string) => k.trim()) : []
+          keyTakeaways: newBookTakeaways.split(',').map(k => k.trim()).filter(k => k.length > 0)
       };
       storageService.addBook(b);
-      loadData(); setIsAddingBook(false); setNewBook({ keyTakeaways: [] });
+      loadData(); setIsAddingBook(false); 
+      setNewBook({ keyTakeaways: [] });
+      setNewBookTakeaways('');
   }
 
   const handleAddTemplate = (e: React.FormEvent) => {
@@ -168,7 +180,14 @@ export const AdminPanel: React.FC = () => {
                                   </div>
                               </div>
                               <textarea className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="Detailed Summary (Markdown)" rows={4} value={newBook.summary || ''} onChange={e => setNewBook({...newBook, summary: e.target.value})} />
-                              <input className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="Key Takeaways (comma separated)" value={newBook.keyTakeaways as unknown as string || ''} onChange={e => setNewBook({...newBook, keyTakeaways: e.target.value as any})} />
+                              
+                              <input 
+                                className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" 
+                                placeholder="Key Takeaways (comma separated)" 
+                                value={newBookTakeaways} 
+                                onChange={e => setNewBookTakeaways(e.target.value)} 
+                              />
+                              
                               <div className="flex justify-end gap-2">
                                   <button type="button" onClick={() => setIsAddingBook(false)} className="text-slate-500 font-bold px-4">Cancel</button>
                                   <button type="submit" className="bg-indigo-600 text-white font-bold px-4 py-2 rounded">Save Book</button>
@@ -222,15 +241,13 @@ export const AdminPanel: React.FC = () => {
                                   <input className="p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="Description" value={newTemplate.description || ''} onChange={e => setNewTemplate({...newTemplate, description: e.target.value})} />
                               </div>
                               
-                              {/* File Upload for Template Content */}
                               <div className="border-t dark:border-slate-700 pt-4">
-                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Upload Template File (Optional - Overrides Generator)</label>
+                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Upload Template File (Optional)</label>
                                   <input 
                                     type="file" 
                                     className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white"
                                     onChange={(e) => handleFileUpload(e, (base64) => setNewTemplate({...newTemplate, content: base64}))}
                                   />
-                                  <p className="text-xs text-slate-400 mt-1">Or paste content string below if not uploading a file.</p>
                               </div>
 
                               <textarea 
@@ -248,7 +265,7 @@ export const AdminPanel: React.FC = () => {
                           </form>
                       </div>
                   )}
-
+                  
                   <div className="max-h-60 overflow-y-auto border rounded dark:border-slate-700">
                       <table className="w-full text-left text-sm">
                           <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
@@ -347,9 +364,23 @@ export const AdminPanel: React.FC = () => {
             {isCreatingModule && (
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-indigo-200 shadow-lg">
                     <form onSubmit={handleCreateModule} className="space-y-4">
-                        {/* Shortened for brevity, same logic as before */}
                         <input className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="Title" value={newModule.title || ''} onChange={(e) => setNewModule({...newModule, title: e.target.value, id: e.target.value.toLowerCase().replace(/\s/g, '-')})} required />
-                        <div className="flex justify-end gap-2"><button type="button" onClick={() => setIsCreatingModule(false)}>Cancel</button><button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded">Create</button></div>
+                        <textarea className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="Description" value={newModule.description || ''} onChange={(e) => setNewModule({...newModule, description: e.target.value})} />
+                        
+                        {/* Topics Input */}
+                        <input 
+                            className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" 
+                            placeholder="Topics (comma separated)" 
+                            value={newModuleTopics} 
+                            onChange={(e) => setNewModuleTopics(e.target.value)} 
+                        />
+                        
+                        <textarea className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white" placeholder="AI Context Instructions (e.g. Focus on B2B SaaS)" value={newModule.aiContext || ''} onChange={(e) => setNewModule({...newModule, aiContext: e.target.value})} />
+                        
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => setIsCreatingModule(false)} className="text-slate-500 font-bold px-4">Cancel</button>
+                            <button type="submit" className="bg-indigo-600 text-white font-bold px-4 py-2 rounded">Create Module</button>
+                        </div>
                     </form>
                 </div>
             )}
@@ -360,6 +391,7 @@ export const AdminPanel: React.FC = () => {
                             <div className={`w-8 h-8 rounded center flex items-center justify-center text-white ${module.color}`}><i className={module.icon}></i></div>
                             <span className="font-bold text-slate-800 dark:text-white">{module.title}</span>
                         </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">{module.description}</div>
                         <div className="flex justify-between mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
                              <button onClick={() => setEditingModule(module)} className="text-indigo-600 font-bold text-sm">Edit</button>
                              <button onClick={() => handleDeleteModule(module.id)} className="text-red-500 font-bold text-sm">Delete</button>

@@ -1,9 +1,42 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { QuizQuestion, ScenarioResult, BusinessCase, PlanEvaluation, MarketingPlan, Difficulty } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = "gemini-2.5-flash";
+
+// --- CACHING SYSTEM ---
+const CACHE_PREFIX = 'mm_ai_cache_';
+const CACHE_EXPIRY = 1000 * 60 * 60 * 24; // 24 Hours
+
+const getCacheKey = (type: string, id: string, difficulty: string) => {
+    return `${CACHE_PREFIX}${type}_${id}_${difficulty}`;
+};
+
+const getFromCache = (key: string) => {
+    const item = localStorage.getItem(key);
+    if (!item) return null;
+    try {
+        const { value, timestamp } = JSON.parse(item);
+        if (Date.now() - timestamp > CACHE_EXPIRY) {
+            localStorage.removeItem(key);
+            return null;
+        }
+        return value;
+    } catch (e) {
+        return null;
+    }
+};
+
+const saveToCache = (key: string, value: any) => {
+    try {
+        const item = { value, timestamp: Date.now() };
+        localStorage.setItem(key, JSON.stringify(item));
+    } catch (e) {
+        console.warn("Cache quota exceeded");
+    }
+};
 
 const getDifficultyPrompt = (difficulty: Difficulty) => {
   switch (difficulty) {
@@ -33,6 +66,10 @@ const cleanAndParseJSON = (text: string): any => {
 };
 
 export const generateLessonContent = async (topic: string, moduleTitle: string, aiContext?: string, difficulty: Difficulty = Difficulty.MANAGER): Promise<string> => {
+  const cacheKey = getCacheKey('lesson', `${moduleTitle}_${topic}`, difficulty);
+  const cached = getFromCache(cacheKey);
+  if (cached) return cached;
+
   try {
     const contextInstruction = aiContext ? `Additional Context/Instruction: ${aiContext}` : "";
     const diffPrompt = getDifficultyPrompt(difficulty);
@@ -47,7 +84,10 @@ export const generateLessonContent = async (topic: string, moduleTitle: string, 
       Include 3 key takeaways formatted as a bulleted list at the end. 
       Tone: Professional but fun, like a mentor speaking to an apprentice.`,
     });
-    return response.text || "Failed to generate lesson content.";
+    
+    const content = response.text || "Failed to generate lesson content.";
+    if (content.length > 50) saveToCache(cacheKey, content); // Only cache valid responses
+    return content;
   } catch (error) {
     console.error("Error generating lesson:", error);
     return "## Connection Error\n\nUnable to reach the Marketing Guild archives (API Error). Please try again.";
@@ -55,6 +95,10 @@ export const generateLessonContent = async (topic: string, moduleTitle: string, 
 };
 
 export const generateQuiz = async (topic: string, difficulty: Difficulty = Difficulty.MANAGER): Promise<QuizQuestion[]> => {
+  const cacheKey = getCacheKey('quiz', topic, difficulty);
+  const cached = getFromCache(cacheKey);
+  if (cached) return cached;
+
   try {
     const diffPrompt = getDifficultyPrompt(difficulty);
     const response = await ai.models.generateContent({
@@ -80,7 +124,9 @@ export const generateQuiz = async (topic: string, difficulty: Difficulty = Diffi
     });
 
     const jsonText = response.text || "[]";
-    return cleanAndParseJSON(jsonText) || [];
+    const data = cleanAndParseJSON(jsonText) || [];
+    if (data.length > 0) saveToCache(cacheKey, data);
+    return data;
   } catch (error) {
     console.error("Error generating quiz:", error);
     return [];
@@ -88,6 +134,8 @@ export const generateQuiz = async (topic: string, difficulty: Difficulty = Diffi
 };
 
 export const generateScenario = async (moduleTitle: string, difficulty: Difficulty = Difficulty.MANAGER): Promise<{ scenario: string; context: string }> => {
+  // Scenarios are fun when random, so we might not want to cache them strictly, 
+  // or use a random seed in the key. For now, no cache to keep it dynamic.
   try {
     const diffPrompt = getDifficultyPrompt(difficulty);
     const response = await ai.models.generateContent({
@@ -164,6 +212,7 @@ export const evaluateScenarioResponse = async (
 // --- SIMULATOR SERVICES ---
 
 export const generateBusinessCase = async (difficulty: Difficulty = Difficulty.MANAGER): Promise<BusinessCase> => {
+  // No cache for business cases to ensure variety
   try {
     const diffPrompt = getDifficultyPrompt(difficulty);
     const response = await ai.models.generateContent({
@@ -284,33 +333,57 @@ export const evaluateMarketingPlan = async (
 
 // --- LIBRARY SERVICES ---
 
-export const generateBookSummary = async (title: string, author: string): Promise<string> => {
+export const generateBookSummary = async (title: string, author: string): Promise<{ summary: string; keyTakeaways: string[] }> => {
+    // We do NOT use cache for this specific function as it is triggered manually by the user
+    // to "regenerate" or generate missing content.
     try {
         const response = await ai.models.generateContent({
             model: MODEL_NAME,
             contents: `Summarize the book "${title}" by ${author} specifically for a marketing professional.
             
-            Structure the response as Markdown:
-            1. **The Core Thesis** (2-3 sentences)
-            2. **Top 5 Key Concepts** (Bulleted list with brief explanations)
-            3. **Actionable Takeaway** (How to apply this today in a marketing strategy)
-            
-            Keep it concise and high-value.`,
+            Return a structured JSON with two fields:
+            1. "summary": A detailed markdown summary including Core Thesis, Key Concepts (with potential markdown tables), and Critical Analysis.
+            2. "keyTakeaways": An array of 3-5 short, punchy takeaways.`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        summary: { type: Type.STRING },
+                        keyTakeaways: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    }
+                }
+            }
         });
-        return response.text || "Summary unavailable.";
+        const jsonText = response.text || "{}";
+        const data = cleanAndParseJSON(jsonText);
+        
+        return {
+            summary: data.summary || "Summary unavailable.",
+            keyTakeaways: data.keyTakeaways || []
+        };
     } catch (error) {
         console.error("Error generating summary:", error);
-        return "Summary could not be generated. Please check connection.";
+        return {
+            summary: "Summary could not be generated. Please check connection.",
+            keyTakeaways: []
+        };
     }
 }
 
 export const generateDefinition = async (term: string, context: string): Promise<string> => {
+  const cacheKey = getCacheKey('def', `${term}`, 'general');
+  const cached = getFromCache(cacheKey);
+  if (cached) return cached;
+
   try {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `Define the marketing term "${term}" concisely (under 50 words) within the context of "${context}". Keep it simple and easy to memorize.`,
     });
-    return response.text?.trim() || "Definition unavailable.";
+    const content = response.text?.trim() || "Definition unavailable.";
+    if (content.length > 5 && content !== "Definition unavailable.") saveToCache(cacheKey, content);
+    return content;
   } catch (error) {
     console.error("Error generating definition:", error);
     return "Definition unavailable.";

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { storageService } from '../services/storageService';
-import { generateDefinition } from '../services/geminiService';
+import { generateDefinition, generateBookSummary } from '../services/geminiService';
 import { Book, Template, UserProfile, MarketingModule } from '../types';
 import jsPDF from 'jspdf';
 
@@ -29,6 +29,7 @@ export const Library: React.FC<LibraryProps> = ({ onBack, user, modules = [] }) 
 
     // Book State
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+    const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
     // Flashcard State
     const [deck, setDeck] = useState<Flashcard[]>([]);
@@ -132,6 +133,25 @@ export const Library: React.FC<LibraryProps> = ({ onBack, user, modules = [] }) 
         setTimeout(() => {
             setCurrentCardIndex((prev) => (prev - 1 + deck.length) % deck.length);
         }, 300);
+    };
+
+    const handleGenerateSummary = async () => {
+        if (!selectedBook) return;
+        setIsGeneratingSummary(true);
+        const { summary, keyTakeaways } = await generateBookSummary(selectedBook.title, selectedBook.author);
+        
+        const updatedBook = { ...selectedBook, summary, keyTakeaways };
+        
+        // Update local state
+        setSelectedBook(updatedBook);
+        
+        // Update list state
+        setBooks(prev => prev.map(b => b.id === updatedBook.id ? updatedBook : b));
+        
+        // Persist
+        storageService.updateBook(updatedBook);
+        
+        setIsGeneratingSummary(false);
     };
 
     // Filter Books
@@ -292,12 +312,33 @@ export const Library: React.FC<LibraryProps> = ({ onBack, user, modules = [] }) 
                                     <div className="flex flex-col md:flex-row gap-8">
                                         <div className="w-full md:w-1/3 shrink-0">
                                             <img src={selectedBook.thumbnail} alt={selectedBook.title} className="w-full rounded-lg shadow-lg mb-4" />
-                                            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+                                            
+                                            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg mb-4">
                                                 <h4 className="font-bold text-indigo-900 dark:text-indigo-300 mb-2 text-sm">Key Takeaways</h4>
-                                                <ul className="list-disc list-inside space-y-1 text-sm text-indigo-800 dark:text-indigo-200">
-                                                    {selectedBook.keyTakeaways.map((k, i) => <li key={i}>{k}</li>)}
-                                                </ul>
+                                                {selectedBook.keyTakeaways.length > 0 ? (
+                                                    <ul className="list-disc list-inside space-y-1 text-sm text-indigo-800 dark:text-indigo-200">
+                                                        {selectedBook.keyTakeaways.map((k, i) => <li key={i}>{k}</li>)}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-xs text-indigo-500 italic">No takeaways yet.</p>
+                                                )}
                                             </div>
+
+                                            <button 
+                                                onClick={handleGenerateSummary}
+                                                disabled={isGeneratingSummary}
+                                                className="w-full py-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-sm rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                {isGeneratingSummary ? (
+                                                    <>
+                                                        <i className="fa-solid fa-circle-notch fa-spin"></i> Generating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <i className="fa-solid fa-wand-magic-sparkles"></i> AI Summary
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                         <div className="w-full md:w-2/3 prose prose-slate dark:prose-invert max-w-none">
                                             <ReactMarkdown>{selectedBook.summary}</ReactMarkdown>

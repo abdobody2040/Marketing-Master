@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UserProfile, ViewState, UserRole, Difficulty } from '../types';
 import { ProgressBar } from './ProgressBar';
@@ -203,6 +202,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeView, onNavigate, 
               <i className="fa-solid fa-right-from-bracket"></i>
               <span>Log Out</span>
           </button>
+          
+          <div className="pt-2 text-center">
+              <a href="#" className="text-[10px] text-slate-400 hover:text-indigo-500 mr-2">Privacy</a>
+              <span className="text-[10px] text-slate-300">|</span>
+              <a href="#" className="text-[10px] text-slate-400 hover:text-indigo-500 ml-2">Terms</a>
+          </div>
         </div>
       </aside>
     </>

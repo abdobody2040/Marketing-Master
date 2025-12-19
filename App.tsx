@@ -1,24 +1,32 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ModuleCard } from './components/ModuleCard';
-import { Quiz } from './components/Quiz';
-import { Scenario } from './components/Scenario';
-import { Simulator } from './components/Simulator';
 import { AuthScreen } from './components/AuthScreen';
-import { AdminPanel } from './components/AdminPanel';
-import { QuestMap } from './components/QuestMap';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
+import { PaymentModal } from './components/PaymentModal';
 import { SkillRadar } from './components/SkillRadar';
 import { FunnelChart } from './components/FunnelChart';
-import { OnboardingTutorial } from './components/OnboardingTutorial';
-import { ProgressBar } from './components/ProgressBar';
-import { PaymentModal } from './components/PaymentModal';
-import { Library } from './components/Library';
-import { UserProfile, ViewState, MarketingModule, QuizQuestion, ScenarioResult, UserRole, Difficulty } from './types';
+import { UserProfile, ViewState, MarketingModule, QuizQuestion, ScenarioResult, Difficulty } from './types';
 import { generateLessonContent, generateQuiz } from './services/geminiService';
 import { storageService } from './services/storageService';
 import { generateCertificate } from './services/certificateService';
 import ReactMarkdown from 'react-markdown';
+
+// Lazy Load Heavy Components
+const QuestMap = React.lazy(() => import('./components/QuestMap').then(module => ({ default: module.QuestMap })));
+const Simulator = React.lazy(() => import('./components/Simulator').then(module => ({ default: module.Simulator })));
+const Library = React.lazy(() => import('./components/Library').then(module => ({ default: module.Library })));
+const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
+const Quiz = React.lazy(() => import('./components/Quiz').then(module => ({ default: module.Quiz })));
+const Scenario = React.lazy(() => import('./components/Scenario').then(module => ({ default: module.Scenario })));
+
+// Loading Spinner for Suspense
+const LoadingSpinner = () => (
+    <div className="flex h-full items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+    </div>
+);
 
 // Simple countdown component
 const DailyChallengeTimer = () => {
@@ -203,7 +211,6 @@ const App: React.FC = () => {
         const badgeName = `${activeModule.title} Master`;
         if (!updatedBadges.includes(badgeName)) {
             updatedBadges.push(badgeName);
-            // Could trigger a toast here for badge earned
         }
     }
 
@@ -257,18 +264,19 @@ const App: React.FC = () => {
   // Helper to check if a module is locked based on phase progression
   const checkModuleLocked = (module: MarketingModule) => {
     if (!user) return true;
-    // Phase 1 is always unlocked
     if (module.phase === 1) return false;
 
-    // To unlock Phase N, you need to complete at least 2 modules from Phase N-1
     const prevPhase = module.phase - 1;
     const prevPhaseModules = modules.filter(m => m.phase === prevPhase);
     
+    if (prevPhaseModules.length === 0) return false;
+
     // Count how many modules from the previous phase are in the user's completed list
     const completedCount = prevPhaseModules.filter(m => user.completedModules.includes(m.id)).length;
     
-    // Requirement: Complete at least 2 modules from the previous phase
-    return completedCount < 2;
+    // Requirement: Complete at least 2 modules from the previous phase (or all if < 2)
+    const required = Math.min(2, prevPhaseModules.length);
+    return completedCount < required;
   };
 
   // Search Logic
@@ -578,21 +586,22 @@ const App: React.FC = () => {
         return renderDashboard();
       case ViewState.QUEST_MAP:
         return (
-            <QuestMap 
-                modules={modules} 
-                completedModuleIds={user?.completedModules || []} 
-                completedTopics={user?.completedTopics || []}
-                onModuleSelect={(mod) => {
-                    // Check lock before selecting
-                    if(!checkModuleLocked(mod)) handleModuleClick(mod)
-                }} 
-                onBack={() => setCurrentView(ViewState.DASHBOARD)}
-                checkIsLocked={checkModuleLocked}
-                newlyCompletedModuleId={newlyCompletedModuleId}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+                <QuestMap 
+                    modules={modules} 
+                    completedModuleIds={user?.completedModules || []} 
+                    completedTopics={user?.completedTopics || []}
+                    onModuleSelect={(mod) => {
+                        if(!checkModuleLocked(mod)) handleModuleClick(mod)
+                    }} 
+                    onBack={() => setCurrentView(ViewState.DASHBOARD)}
+                    checkIsLocked={checkModuleLocked}
+                    newlyCompletedModuleId={newlyCompletedModuleId}
+                />
+            </Suspense>
         );
       case ViewState.LESSON: 
-        return renderModuleDetail(); // Handles both Topic List and Lesson
+        return renderModuleDetail(); 
       case ViewState.QUIZ: 
         if (loadingQuiz) {
            return (
@@ -602,67 +611,81 @@ const App: React.FC = () => {
             </div>
            );
         }
-        return <Quiz questions={quizQuestions} onComplete={handleQuizComplete} onClose={() => {setActiveTopic(null); setCurrentView(ViewState.LESSON)}} />;
+        return (
+            <Suspense fallback={<LoadingSpinner />}>
+                <Quiz questions={quizQuestions} onComplete={handleQuizComplete} onClose={() => {setActiveTopic(null); setCurrentView(ViewState.LESSON)}} />
+            </Suspense>
+        );
       case ViewState.SCENARIO:
         if (!activeModule) return null;
-        return <Scenario module={activeModule} onComplete={handleScenarioComplete} onClose={() => {setActiveTopic(null); setCurrentView(ViewState.LESSON)}} />;
+        return (
+            <Suspense fallback={<LoadingSpinner />}>
+                <Scenario module={activeModule} onComplete={handleScenarioComplete} onClose={() => {setActiveTopic(null); setCurrentView(ViewState.LESSON)}} />
+            </Suspense>
+        );
       case ViewState.SIMULATOR:
-        return <Simulator onClose={() => setCurrentView(ViewState.DASHBOARD)} onComplete={addXp} difficulty={user?.difficulty || Difficulty.MANAGER} />
+        return (
+            <Suspense fallback={<LoadingSpinner />}>
+                <Simulator onClose={() => setCurrentView(ViewState.DASHBOARD)} onComplete={addXp} difficulty={user?.difficulty || Difficulty.MANAGER} />
+            </Suspense>
+        );
       case ViewState.ADMIN_PANEL:
-        return <AdminPanel />;
+        return (
+            <Suspense fallback={<LoadingSpinner />}>
+                <AdminPanel />
+            </Suspense>
+        );
       case ViewState.LIBRARY:
         return (
-            <Library 
-                onBack={() => setCurrentView(ViewState.DASHBOARD)} 
-                user={user}
-                modules={modules}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+                <Library 
+                    onBack={() => setCurrentView(ViewState.DASHBOARD)} 
+                    user={user}
+                    modules={modules}
+                />
+            </Suspense>
         );
       default: 
         return renderDashboard();
     }
   };
 
-  if (currentView === ViewState.AUTH) {
-    return renderContent();
-  }
-
-  // Payment Check
-  if (user && !user.isPro) {
-      return (
-          <PaymentModal 
-            price={appPrice} 
-            onSuccess={handlePaymentSuccess} 
-            onLogout={handleLogout} 
-          />
-      );
-  }
-
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
-      {user && !user.hasSeenTutorial && (
-          <OnboardingTutorial onComplete={handleTutorialComplete} />
-      )}
-      
-      {user && (
-        <Sidebar 
-          user={user} 
-          activeView={currentView} 
-          onNavigate={(view) => {
-              // Reset detailed states when navigating via sidebar
-              setActiveTopic(null);
-              setCurrentView(view);
-              setSearchQuery('');
-          }} 
-          onLogout={handleLogout}
-          onUpdateDifficulty={handleDifficultyUpdate}
-          onUpdateTheme={handleThemeUpdate}
-        />
-      )}
-      <main className="flex-1 overflow-y-auto p-4 md:p-10 pt-4 md:pt-10 mt-16 md:mt-0 bg-slate-50 dark:bg-slate-900 relative scroll-smooth transition-colors duration-300">
-        {renderContent()}
-      </main>
-    </div>
+    <ErrorBoundary>
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
+        {user && !user.hasSeenTutorial && (
+            <OnboardingTutorial onComplete={handleTutorialComplete} />
+        )}
+        
+        {user && (
+            <Sidebar 
+            user={user} 
+            activeView={currentView} 
+            onNavigate={(view) => {
+                setActiveTopic(null);
+                setCurrentView(view);
+                setSearchQuery('');
+            }} 
+            onLogout={handleLogout}
+            onUpdateDifficulty={handleDifficultyUpdate}
+            onUpdateTheme={handleThemeUpdate}
+            />
+        )}
+        
+        {/* Payment Modal Override */}
+        {user && !user.isPro && currentView !== ViewState.AUTH ? (
+             <PaymentModal 
+                price={appPrice} 
+                onSuccess={handlePaymentSuccess} 
+                onLogout={handleLogout} 
+            />
+        ) : (
+            <main className="flex-1 overflow-y-auto p-4 md:p-10 pt-4 md:pt-10 mt-16 md:mt-0 bg-slate-50 dark:bg-slate-900 relative scroll-smooth transition-colors duration-300">
+                {renderContent()}
+            </main>
+        )}
+        </div>
+    </ErrorBoundary>
   );
 };
 

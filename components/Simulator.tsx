@@ -109,8 +109,8 @@ export const Simulator: React.FC<SimulatorProps> = ({ onClose, onComplete, diffi
     const INTERESTS = ['Tech', 'Fashion', 'Health', 'Finance', 'Travel', 'Gaming', 'Food', 'B2B', 'Education', 'Sports'];
     const VALUES = ['Sustainability', 'Innovation', 'Reliability', 'Luxury', 'Affordability', 'Community', 'Wellness', 'Privacy'];
     
-    // Calculate total budget usage safely
-    const totalBudgetUsage = (Object.values(budgetAllocations) as number[]).reduce((a, b) => a + b, 0);
+    // Calculate total budget usage safely using Math.round to avoid floating point errors
+    const totalBudgetUsage = Math.round((Object.values(budgetAllocations) as number[]).reduce((a, b) => a + b, 0));
 
     // Dynamic Guide Content
     const getGuideContent = () => {
